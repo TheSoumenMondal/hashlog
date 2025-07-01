@@ -4,6 +4,14 @@ import jwt from "jsonwebtoken";
 import { checkPassword, generateHashPassword } from "../utils/password.js";
 import { Trycatch } from "../utils/try-catch-handler.js";
 import { AuthenticatedRequest } from "../middleware/auth-middleware.js";
+import getBuffer from "../utils/data-uri.js";
+import { v2 as cloudinary } from "cloudinary";
+
+const sanitizeUser = (userDoc: any) => {
+  const user = userDoc.toObject();
+  delete user.password;
+  return user;
+};
 
 export const logInUser = async (req: Request, res: Response) => {
   try {
@@ -30,19 +38,15 @@ export const logInUser = async (req: Request, res: Response) => {
       });
     }
 
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "10d" }
-    );
+    const safeUser = sanitizeUser(user);
+
+    const token = jwt.sign(safeUser, process.env.JWT_SECRET as string, {
+      expiresIn: "10d",
+    });
 
     return res.status(200).json({
       message: "Login successful.",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: safeUser,
       token,
     });
   } catch (error: any) {
@@ -55,6 +59,7 @@ export const logInUser = async (req: Request, res: Response) => {
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
+
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "Name, email, and password are required.",
@@ -76,19 +81,15 @@ export const registerUser = async (req: Request, res: Response) => {
       password: hashedPassword,
     });
 
-    const token = jwt.sign(
-      { id: newUser._id, email: newUser.email },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "10d" }
-    );
+    const safeUser = sanitizeUser(newUser);
+
+    const token = jwt.sign(safeUser, process.env.JWT_SECRET as string, {
+      expiresIn: "10d",
+    });
 
     return res.status(201).json({
       message: "Registration successful.",
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-      },
+      user: safeUser,
       token,
     });
   } catch (error: any) {
@@ -106,7 +107,7 @@ export const myProfile = Trycatch(async (req: AuthenticatedRequest, res) => {
 export const getUserProfile = Trycatch(async (req: Request, res: Response) => {
   const user = await User.findById(req.params.id).select("-password");
   if (!user) {
-    res.status(404).json({
+    return res.status(404).json({
       message: "No user with this ID.",
     });
     return;
@@ -119,7 +120,7 @@ export const updateUser = Trycatch(async (req: AuthenticatedRequest, res) => {
     req.body;
 
   const updatedUser = await User.findByIdAndUpdate(
-    req.user?.id,
+    req.user?._id,
     { name, bio, instagram, facebook, linkedin, github, youtube },
     { new: true, runValidators: true }
   ).select("-password");
@@ -128,13 +129,60 @@ export const updateUser = Trycatch(async (req: AuthenticatedRequest, res) => {
     return res.status(404).json({ message: "User not found." });
   }
 
-  const token = jwt.sign(
-    { id: updatedUser._id },
-    process.env.JWT_SECRET as string,
-    {
-      expiresIn: "10d",
-    }
-  );
+  const safeUser = sanitizeUser(updatedUser);
 
-  res.status(200).json({ user: updatedUser, token });
+  const token = jwt.sign(safeUser, process.env.JWT_SECRET as string, {
+    expiresIn: "10d",
+  });
+
+  res.status(200).json({ user: safeUser, token });
 });
+
+export const updateProfilePic = Trycatch(
+  async (req: AuthenticatedRequest, res) => {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({
+        message: "No file to upload.",
+      });
+      return;
+    }
+    const fileBuffer = getBuffer(file);
+    if (!fileBuffer || !fileBuffer.content) {
+      res.status(400).json({
+        message: "Failed to generate buffer.",
+      });
+      return;
+    }
+
+    const cloud = await cloudinary.uploader.upload(fileBuffer.content, {
+      folder: "blog_hashlog",
+    });
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        image: cloud.secure_url,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    const safeUser = sanitizeUser(updatedUser);
+
+    const token = jwt.sign({ safeUser }, process.env.JWT_SECRET as string, {
+      expiresIn: "10d",
+    });
+
+    res.status(201).json({
+      message: "Profile photo updated successfully.",
+      token,
+      user: safeUser,
+    });
+  }
+);

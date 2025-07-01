@@ -4,6 +4,6 @@ type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise
 
 export const Trycatch = (handler: AsyncHandler): RequestHandler => {
   return (req, res, next) => {
-    handler(req, res, next).catch(next); // Let Express handle errors with its default handler
+    handler(req, res, next).catch(next);
   };
 };

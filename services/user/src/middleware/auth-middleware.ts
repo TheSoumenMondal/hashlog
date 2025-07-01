@@ -1,11 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import { IUser } from "../model/user.model.js";
 
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
+  user?: IUser;
 }
 
 export const isAuth = async (
@@ -15,6 +13,7 @@ export const isAuth = async (
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({
         message: "Authentication token not found. Please login again.",
@@ -27,21 +26,17 @@ export const isAuth = async (
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string
-    ) as JwtPayload;
+    ) as IUser;
 
-    if (!decoded || !decoded.id || !decoded.email) {
+    if (!decoded || !decoded._id) {
       res.status(401).json({
         message: "Invalid token payload.",
       });
       return;
     }
 
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-    };
-
-    next(); // Important!
+    req.user = decoded;
+    next();
   } catch (error) {
     res.status(401).json({
       message: "JWT verification failed. Please login again.",
