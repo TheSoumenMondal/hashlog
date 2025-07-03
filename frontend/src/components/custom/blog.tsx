@@ -1,30 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import BlogCard from "./blog-card";
-import axios from "axios";
-import { blogType } from "@/types/type";
+import { useAppData } from "@/context/app-context";
+import { IconLoader3 } from "@tabler/icons-react";
 
 const Blogs = () => {
-  const [blogs, setBlogs] = useState<blogType[]>([]);
+  const { blogs, loadingFilters } = useAppData();
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8000/api/v1/blogs/all`
-        );
-        setBlogs(response.data);
-      } catch (error) {
-        console.warn("Failed to fetch blog data.");
-      }
-    };
-    fetchBlogs();
-  }, []);
+  if (loadingFilters) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <IconLoader3 className="animate-spin w-4 h-4" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col gap-2">
-      {blogs.length > 0 &&
+      {blogs &&
+        blogs.length > 0 &&
         blogs.map((blog, index) => <BlogCard {...blog} key={index} />)}
     </div>
   );

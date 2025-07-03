@@ -2,25 +2,25 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useAppData, user_service } from "@/context/app-context";
 import React, { useRef, useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-
-// Icons
 import { GithubIcon } from "@/icons/github";
 import { LinkedinIcon } from "@/icons/linkedin";
 import { InstagramIcon } from "@/icons/instagram";
 import { FacebookIcon } from "@/icons/facebook";
 import { YoutubeIcon } from "@/icons/youtube";
-import { IconRefresh, IconTagFilled } from "@tabler/icons-react";
+import { IconTagFilled } from "@tabler/icons-react";
+import EditorSheet from "@/components/custom/sheet-editor";
+import { useRouter } from "next/navigation";
 
 const Page = () => {
+  const router = useRouter();
   const imageRef = useRef<HTMLInputElement>(null);
-  const { user, setUser } = useAppData();
+  const { user, setUser, LogoutUser } = useAppData();
   const [loading, setLoading] = useState(false);
 
   const [name, setName] = useState("");
@@ -31,7 +31,6 @@ const Page = () => {
     github: "",
     facebook: "",
     youtube: "",
-    twitter: "",
   });
 
   useEffect(() => {
@@ -39,15 +38,18 @@ const Page = () => {
       setName(user.name || "");
       setEmail(user.email || "");
       setSocials({
-        instagram: "",
-        linkedin: "",
-        github: "",
-        facebook: "",
-        youtube: "",
-        twitter: "",
+        instagram: user.instagram || "",
+        linkedin: user.linkedin || "",
+        github: user.github || "",
+        facebook: user.facebook || "",
+        youtube: user.youtube || "",
       });
     }
   }, [user]);
+
+  const logoutHandler = () => {
+    LogoutUser();
+  };
 
   const changeHandler = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,7 +85,6 @@ const Page = () => {
           error?.response?.data?.message ||
           error.message ||
           "Internal server error";
-        console.warn("Upload Error:", message);
         toast.error("Error", { description: message });
       } finally {
         setLoading(false);
@@ -95,86 +96,52 @@ const Page = () => {
     imageRef.current?.click();
   };
 
+  const SOCIALS_MAP = {
+    instagram: {
+      icon: <InstagramIcon size={20} />,
+      base: "https://instagram.com/",
+    },
+    linkedin: {
+      icon: <LinkedinIcon size={20} />,
+      base: "https://linkedin.com/in/",
+    },
+    github: {
+      icon: <GithubIcon size={20} />,
+      base: "https://github.com/",
+    },
+    facebook: {
+      icon: <FacebookIcon size={20} />,
+      base: "https://facebook.com/",
+    },
+    youtube: {
+      icon: <YoutubeIcon size={20} />,
+      base: "https://youtube.com/",
+    },
+  };
+
+  const openSocial = (value: string, base: string) => {
+    if (!value) return;
+    const isFullUrl = value.startsWith("http");
+    const href = isFullUrl ? value : `${base}${value}`;
+    window.open(href, "_blank");
+  };
+
+  if (!user) return null;
+
   return (
-    <div className="w-full h-[calc(100vh_-_64px)] flex items-center justify-center">
-      <Card className="w-full md:w-2/3 md:h-2/3">
+    <div className="w-full h-[calc(100vh_-_64px)] flex items-center justify-center px-4">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="hidden md:flex">Update Your Profile</CardTitle>
+          <CardTitle className="text-lg font-semibold text-center">
+            Update Your Profile
+          </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex flex-col-reverse md:flex-row gap-4">
-          <div className="w-full flex flex-col gap-3">
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
-            />
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-            />
-
-            <div className="w-full flex gap-2 items-center">
-              <InstagramIcon size={20} />
-              <Input
-                value={socials.instagram}
-                onChange={(e) =>
-                  setSocials({ ...socials, instagram: e.target.value })
-                }
-                placeholder="Instagram"
-              />
-            </div>
-
-            <div className="w-full flex gap-2 items-center">
-              <LinkedinIcon size={20} />
-              <Input
-                value={socials.linkedin}
-                onChange={(e) =>
-                  setSocials({ ...socials, linkedin: e.target.value })
-                }
-                placeholder="LinkedIn"
-              />
-            </div>
-
-            <div className="w-full flex gap-2 items-center">
-              <GithubIcon size={20} />
-              <Input
-                value={socials.github}
-                onChange={(e) =>
-                  setSocials({ ...socials, github: e.target.value })
-                }
-                placeholder="GitHub"
-              />
-            </div>
-
-            <div className="w-full flex gap-2 items-center">
-              <FacebookIcon size={20} />
-              <Input
-                value={socials.facebook}
-                onChange={(e) =>
-                  setSocials({ ...socials, facebook: e.target.value })
-                }
-                placeholder="Facebook"
-              />
-            </div>
-
-            <div className="w-full flex gap-2 items-center">
-              <YoutubeIcon size={20} />
-              <Input
-                value={socials.youtube}
-                onChange={(e) =>
-                  setSocials({ ...socials, youtube: e.target.value })
-                }
-                placeholder="YouTube"
-              />
-            </div>
-          </div>
-
-          <div className="flex w-full h-full items-center justify-between gap-2 flex-col">
-            <Avatar className="w-32 h-32" onClick={clickHandler}>
+        <CardContent className="flex flex-col items-center gap-4">
+          <div onClick={clickHandler}>
+            <Avatar className="w-28 h-28 cursor-pointer">
               <AvatarImage src={user?.image} alt={user?.name} />
-              <AvatarFallback>{user?.name}</AvatarFallback>
+              <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
               <input
                 type="file"
                 className="hidden"
@@ -183,35 +150,53 @@ const Page = () => {
                 onChange={changeHandler}
               />
             </Avatar>
+          </div>
 
-            <Input
-              value={user?.bio ? user.bio : "Add your Bio"}
-              className="text-center text-xs"
-              readOnly
-            />
+          <div className="text-base font-medium px-3 py-2 rounded-md bg-muted border w-full text-center">
+            {name || "Add Name"}
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-1 ">
-                <Button variant="default" className="w-full">
-                  {loading ? "Uploading..." : "Add Blog"}
-                </Button>
-              </div>
-              <Button size="default" className=" w-full" variant="destructive">
-                Log Out
+          <div className="text-base px-3 py-2 rounded-md bg-muted border w-full text-center">
+            {email || "Add Email"}
+          </div>
+
+          <p className="text-xs px-3 py-2 border rounded-md bg-muted w-full text-center">
+            {user?.bio?.trim() || "Add your Bio"}
+          </p>
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            {Object.entries(SOCIALS_MAP).map(([key, { icon, base }]) => (
+              <Button
+                key={key}
+                size="icon"
+                variant="ghost"
+                onClick={() =>
+                  openSocial(socials[key as keyof typeof socials], base)
+                }
+              >
+                {icon}
               </Button>
+            ))}
+          </div>
 
-              <div className="col-span-2 flex gap-2">
-                <Button size={"icon"} variant={"outline"}>
-                  <IconTagFilled />
-                </Button>
-                <Button size={"icon"} variant={"outline"}>
-                  <IconRefresh />
-                </Button>
-                <Button size={"default"} className="">
-                  Save Changes
-                </Button>
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-3 justify-center w-full mt-4">
+            <Button variant="default" onClick={() => router.push("/blog/new")}>
+              Add Blog
+            </Button>
+            <Button variant="destructive" onClick={logoutHandler}>
+              Log Out
+            </Button>
+            <EditorSheet />
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => router.push("/saved")}
+            >
+              <IconTagFilled size={18} />
+            </Button>
+            <Button variant="outline" onClick={clickHandler} disabled={loading}>
+              {loading ? "Uploading..." : "Upload New Profile Photo"}
+            </Button>
           </div>
         </CardContent>
       </Card>

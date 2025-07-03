@@ -9,15 +9,15 @@ export type blogType = {
   createdAt: string;
 };
 
-
 export interface User {
+  _id?: string;
   name: string;
   email: string;
   password: string;
   bio: string;
   image: string;
   instagram: string;
-  linkedIn: string;
+  linkedin: string;
   github: string;
   facebook: string;
   youtube: string;

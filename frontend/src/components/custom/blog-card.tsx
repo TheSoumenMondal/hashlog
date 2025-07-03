@@ -1,8 +1,11 @@
+"use client";
+
 import { blogType } from "@/types/type";
 import Image from "next/image";
 
 import React from "react";
 import { IconMessageCircle, IconTag } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 
 type Props = blogType;
 
@@ -14,10 +17,13 @@ const BlogCard = ({
   category,
   createdAt,
 }: Props) => {
+  const router = useRouter();
+
   return (
     <div
       key={id}
-      className="w-full flex items-center justify-between gap-4 border-b border-muted pb-4 hover:bg-muted/20 transition-all px-2 py-3 rounded-md"
+      onClick={() => router.push(`/blog/${id}`)}
+      className="w-full flex items-center justify-between gap-4 border-b border-muted pb-4 hover:bg-muted/20 transition-all px-2 py-3 rounded-md hover:cursor-pointer"
     >
       <div className="flex-1 space-y-1">
         <div className="text-sm text-muted-foreground">
@@ -32,7 +38,7 @@ const BlogCard = ({
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
           <div className="flex items-center gap-1">
-            <IconMessageCircle className="w-4 h-4" /> 0
+            <IconMessageCircle className="w-4 h-4" />
           </div>
           <span className="ml-2 flex gap-1.5 justify-center items-center">
             <IconTag className="w-4 h-4 rotate-90" /> {category}

@@ -14,12 +14,17 @@ const Navbar = () => {
   const router = useRouter();
 
   return (
-    <div className="w-full h-16 items-center flex justify-between bg-background">
-      <p className="text-sm font-semibold">hashlog</p>
+    <div className="w-full h-16 items-center flex justify-between">
+      <Link href={"/"} className="text-sm font-semibold">
+        hashlog
+      </Link>
       <div className="flex gap-2 md:gap-4 h-full items-center">
         <ModeToggle />
         {isAuth ? (
-          <Avatar className="w-8 h-8 cursor-pointer" onClick={() => router.push("/profile")}>
+          <Avatar
+            className="w-8 h-8 cursor-pointer"
+            onClick={() => router.push("/profile")}
+          >
             <AvatarImage src={user?.image} alt={user?.name} />
             <AvatarFallback>{user?.name}</AvatarFallback>
           </Avatar>

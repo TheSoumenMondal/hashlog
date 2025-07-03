@@ -6,6 +6,8 @@ import { Trycatch } from "../utils/try-catch-handler.js";
 import { AuthenticatedRequest } from "../middleware/auth-middleware.js";
 import getBuffer from "../utils/data-uri.js";
 import { v2 as cloudinary } from "cloudinary";
+import { oauth2clint } from "../utils/google.config.js";
+import axios from "axios";
 
 const sanitizeUser = (userDoc: any) => {
   const user = userDoc.toObject();
@@ -13,10 +15,52 @@ const sanitizeUser = (userDoc: any) => {
   return user;
 };
 
+interface GoogleUserData {
+  email: string;
+  name: string;
+  picture: string;
+}
+
 export const logInUser = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, code } = req.body;
 
+    // === Google OAuth login ===
+    if (code) {
+      const googleRes = await oauth2clint.getToken(code);
+      oauth2clint.setCredentials(googleRes.tokens);
+
+      const userRes = await axios.get<GoogleUserData>(
+        `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
+      );
+
+      const { email, name, picture } = userRes.data;
+
+      let user = await User.findOne({ email });
+
+      if (!user) {
+        // Auto-register the user
+        user = await User.create({
+          name,
+          email,
+          image: picture,
+          password: "", // Empty password since using Google
+        });
+      }
+
+      const safeUser = sanitizeUser(user);
+      const token = jwt.sign(safeUser, process.env.JWT_SECRET as string, {
+        expiresIn: "10d",
+      });
+
+      return res.status(200).json({
+        message: "Google login successful.",
+        user: safeUser,
+        token,
+      });
+    }
+
+    // === Traditional email/password login ===
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password are required.",
@@ -24,8 +68,7 @@ export const logInUser = async (req: Request, res: Response) => {
     }
 
     const user = await User.findOne({ email });
-
-    if (!user) {
+    if (!user || !user.password) {
       return res.status(401).json({
         message: "Invalid email or password.",
       });
@@ -39,7 +82,6 @@ export const logInUser = async (req: Request, res: Response) => {
     }
 
     const safeUser = sanitizeUser(user);
-
     const token = jwt.sign(safeUser, process.env.JWT_SECRET as string, {
       expiresIn: "10d",
     });
@@ -50,6 +92,7 @@ export const logInUser = async (req: Request, res: Response) => {
       token,
     });
   } catch (error: any) {
+    console.error("Login error:", error);
     return res.status(500).json({
       message: error.message || "Internal server error.",
     });
@@ -110,7 +153,6 @@ export const getUserProfile = Trycatch(async (req: Request, res: Response) => {
     return res.status(404).json({
       message: "No user with this ID.",
     });
-    return;
   }
   res.json({ user });
 });

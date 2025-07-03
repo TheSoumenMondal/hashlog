@@ -7,7 +7,7 @@ export interface IUser extends Document {
   bio: string;
   image: string;
   instagram: string;
-  linkedIn: string;
+  linkedin: string;
   github: string;
   facebook: string;
   youtube: string;
@@ -36,7 +36,7 @@ const UserSchema: Schema<IUser> = new Schema(
     instagram: {
       type: String,
     },
-    linkedIn: {
+    linkedin: {
       type: String,
     },
     github: {
