@@ -13,10 +13,10 @@ import axios from "axios";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { toast } from "sonner";
 
-// Base service URLs
-export const user_service = "http://localhost:7000";
-export const blog_service = "http://localhost:8000";
-export const author_service = "http://localhost:5000";
+
+export const user_service = process.env.NEXT_PUBLIC_USER_SERCIE!;
+export const blog_service = process.env.NEXT_PUBLIC_BLOG_SERCIE!;
+export const author_service = process.env.NEXT_PUBLIC_AUTHOR_SERCIE!;
 
 interface AppContextType {
   user: User | null;
@@ -46,7 +46,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [loadingFilters, setLoadingFilters] = useState(false); // new state
+  const [loadingFilters, setLoadingFilters] = useState(false); 
   const [blogs, setBlogs] = useState<blogType[] | []>([]);
   const [category, setCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -85,7 +85,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   const FilterBlogs = async () => {
-    setLoadingFilters(true); // start loading
+    setLoadingFilters(true); 
     try {
       const params = new URLSearchParams();
       if (category) params.append("category", category);
@@ -100,7 +100,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       toast.error("Failed to load blogs.");
       setBlogs([]);
     } finally {
-      setLoadingFilters(false); // end loading
+      setLoadingFilters(false);
     }
   };
 
