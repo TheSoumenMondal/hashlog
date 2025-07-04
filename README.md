@@ -1,42 +1,43 @@
-
-#  Microservice-Based Blog Platform — Hashlog
+# Microservice-Based Blog Platform — Hashlog
 
 ---
+
 ![Image](https://github.com/user-attachments/assets/83cde69f-a07d-4b9d-b346-9902913294e4)
 
 ---
+
 A scalable, modular blog platform built on a **microservices architecture** with efficient **RabbitMQ**-based communication, blazing-fast **Redis caching**, and support for authentication, bookmarks, comments, and AI-powered content generation.
 
 ---
 
-##  Features
+## Features
 
-*  **Modular Microservices** — `author`, `user`, `blog`, and `cache`
-*  **Message Broker** — RabbitMQ for asynchronous communication and decoupling
-*  **High-Speed Caching** — Redis-backed real-time data caching
-*  **Authentication** — JWT-based auth with Google OAuth support
-*  **AI Generation** — Blog title, description, and content powered by Gemini AI
-*  **Developer-Friendly** — Docker-compatible, CI/CD-ready, cloud-deployable
+* **Modular Microservices** — `author`, `user`, `blog`, and `cache`
+* **Message Broker** — RabbitMQ for asynchronous communication and decoupling
+* **High-Speed Caching** — Redis-backed real-time data caching
+* **Authentication** — JWT-based auth with Google OAuth support
+* **AI Generation** — Blog title, description, and content powered by Gemini AI
+* **Developer-Friendly** — Docker-compatible, CI/CD-ready, cloud-deployable
 
 ---
 
-##  Getting Started
+## Getting Started
 
-###  Clone the Repository
+### Clone the Repository
 
 ```bash
 git clone https://github.com/TheSoumenMondal/hashlog.git
 cd hashlog
 ```
 
-###  Install Frontend Dependencies
+### Install Frontend Dependencies
 
 ```bash
 cd frontend
 npm install
 ```
 
-###  Install Backend Service Dependencies
+### Install Backend Service Dependencies
 
 ```bash
 cd ../services
@@ -55,7 +56,7 @@ npm install
 
 ---
 
-###  Start RabbitMQ using Docker
+### Start RabbitMQ using Docker
 
 ```bash
 docker run -d \
@@ -75,8 +76,8 @@ Username: `admin` | Password: `admin123`
 
 ## Tech Stack
 
-| Layer              | Technology                 |
-| ------------------ | -------------------------- |
+| Layer                    | Technology                 |
+| ------------------------ | -------------------------- |
 | **Backend**        | Node.js, Express.js        |
 | **Message Broker** | RabbitMQ (via AMQP)        |
 | **Cache**          | Redis                      |
@@ -86,9 +87,9 @@ Username: `admin` | Password: `admin123`
 
 ---
 
-##  Microservices Overview
+## Microservices Overview
 
-###  `author-service`
+### `author-service`
 
 * Manages user authentication and session
 * Handles JWT issuance
@@ -108,7 +109,7 @@ POST   /ai/blog            # Generate complete blog post
 
 ---
 
-###  `user-service`
+### `user-service`
 
 * Handles user profiles and avatars
 * Allows bookmarking blogs
@@ -127,7 +128,7 @@ POST   /user/update/pic     # Upload user avatar
 
 ---
 
-###  `blog-service`
+### `blog-service`
 
 * Handles public blog listing and interaction
 * Supports comments and bookmarking
@@ -146,16 +147,16 @@ GET    /save                # Get all saved blogs
 
 ---
 
-###  `cache-service`
+### `cache-service`
 
 * Integrates with Redis for lightning-fast caching
 * Reduces load on database for common fetches
 
 ---
 
-##  Environment Variables
+## Environment Variables
 
-###  Author Service
+### Author Service
 
 ```env
 PORT=
@@ -174,10 +175,10 @@ GEMINI_API_KEY=
 
 ---
 
-###  Blog Service
+### Blog Service
 
 ```env
-PORT=8000
+PORT=
 DATABASE_URL=
 JWT_SECRET=
 CLOUD_NAME=
@@ -194,7 +195,7 @@ CORS_ORIGIN=
 
 ---
 
-###  User Service
+### User Service
 
 ```env
 PORT=
@@ -209,7 +210,7 @@ GOOGLE_CLIENT_SECRET=
 
 ---
 
-###  Frontend `.env.local`
+### Frontend `.env.local`
 
 ```env
 NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID=

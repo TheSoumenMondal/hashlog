@@ -218,8 +218,13 @@ export const bookmarkBlog = Trycatch(async (req: AuthenticatedRequest, res) => {
   }
 });
 
+
+
+
+
 export const getAllSavedBlogs = Trycatch(
   async (req: AuthenticatedRequest, res: Response) => {
+
     const userId = req.user?._id;
 
     if (!userId || typeof userId !== "string") {
@@ -227,7 +232,6 @@ export const getAllSavedBlogs = Trycatch(
     }
 
     try {
-      // Get all saved blog entries by this user
       const saved = await db
         .select()
         .from(savedBlogs)

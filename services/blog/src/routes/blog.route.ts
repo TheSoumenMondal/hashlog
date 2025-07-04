@@ -20,4 +20,5 @@ router.delete("/comment/:id", isAuth, deleteComment);
 router.post("/save/:blogid", isAuth, bookmarkBlog);
 router.get("/save", isAuth, getAllSavedBlogs);
 
+
 export default router;
