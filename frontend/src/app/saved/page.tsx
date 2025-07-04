@@ -9,7 +9,7 @@ import Cookies from "js-cookie";
 import Image from "next/image";
 import Link from "next/link";
 
-interface SavedBlogsType {
+export interface SavedBlogsType {
   id: string;
   userId: string;
   blogId: string;

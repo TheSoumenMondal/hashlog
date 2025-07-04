@@ -29,12 +29,14 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-
 import {
   author_service,
   blog_service,
   useAppData,
 } from "@/context/app-context";
+import { SavedBlogsType } from "@/app/saved/page";
+import { blogType } from "@/types/type";
+import { motion } from "framer-motion";
 
 type CommentType = {
   id: string;
@@ -78,10 +80,7 @@ type BlogPageData = {
 const Page = () => {
   const params = useParams();
   const router = useRouter();
-  const { isAuth, user } = useAppData();
-
-  const id = typeof params?.id === "string" ? params.id : "";
-
+  const { isAuth, user, blogs } = useAppData();
   const [data, setData] = useState<BlogPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [closeDialog, setCloseDialog] = useState<boolean>(false);
@@ -89,17 +88,48 @@ const Page = () => {
   const [comments, setComments] = useState<CommentType[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [Comment, setComment] = useState("");
-
   const [bookmark, setBookmark] = useState(false);
 
+  const id = typeof params?.id === "string" ? params.id : "";
+
+  const [filteredBlogs, setFilteredBlogs] = useState<blogType[]>([]);
+
+  const getAllSavedBlogs = async () => {
+    try {
+      const token = Cookies.get("token");
+      const { data: saves } = await axios.get(`${blog_service}/api/v1/save`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const matchedBlogs = blogs?.filter((blog) =>
+        saves.some((saved: SavedBlogsType) => saved.blogId === blog.id)
+      );
+
+      setFilteredBlogs(matchedBlogs || []);
+
+      if (id) {
+        const isBookmarked = saves.some(
+          (saved: SavedBlogsType) => saved.blogId === id
+        );
+        setBookmark(isBookmarked);
+      }
+    } catch (error) {
+      toast.error("Something went wrong while fetching saved blogs.");
+    }
+  };
+
+  useEffect(() => {
+    getAllSavedBlogs();
+  }, [blogs]);
+
   const handleBookMark = async () => {
-    
     const token = Cookies.get("token");
     if (!token) {
       toast.error("Please log in to bookmark");
       return;
     }
-
     try {
       const res = await axios.post(
         `${blog_service}/api/v1/save/${id}`,
@@ -110,7 +140,6 @@ const Page = () => {
           },
         }
       );
-
       const message = res.data.message;
       if (message.includes("bookmarked")) {
         setBookmark(true);
@@ -258,17 +287,6 @@ const Page = () => {
   const CommentCard = ({ comment }: { comment: NestedComment }) => {
     const canDelete = user?._id === comment.userId;
 
-    console.log(comment);
-
-    console.log(
-      "user?._id:",
-      user?._id,
-      "comment.user_id:",
-      comment.userId,
-      "canDelete:",
-      canDelete
-    );
-
     return (
       <div className="pl-4 border-l-2 border-border mb-4">
         <div className="bg-muted/40 p-3 rounded-md shadow-sm space-y-1">
@@ -282,7 +300,6 @@ const Page = () => {
                 })}
             </span>
           </div>
-
           <p className="text-sm text-foreground">{comment.comment}</p>
           <div className="flex gap-3 mt-2 text-xs text-muted-foreground">
             {canDelete && (
@@ -301,7 +318,12 @@ const Page = () => {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh_-_64px)] flex">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="relative w-full h-[calc(100vh_-_64px)] flex"
+    >
       <div className="md:w-[calc(100%-120px)] w-full h-full overflow-y-auto hide-scrollbar">
         <div className="p-6 space-y-4">
           {loading ? (
@@ -461,7 +483,7 @@ const Page = () => {
           className="rounded-xl"
           onClick={handleBookMark}
         >
-          { bookmark ? (
+          {bookmark ? (
             <IconBookmark color="#2563eb" fill="#2563eb" />
           ) : (
             <IconBookmarkPlus />
@@ -476,7 +498,7 @@ const Page = () => {
           <IconLink />
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

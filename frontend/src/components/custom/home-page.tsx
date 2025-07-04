@@ -28,7 +28,7 @@ const Homepage = () => {
   };
 
   return (
-    <div className="w-full relative h-[70vh] pt-16 overflow-hidden">
+    <div className="w-full relative h-[70vh] pt-16 overflow-hidden select-none">
       <div className="absolute right-32 top-16 w-fit h-fit hidden md:flex">
         <SpringElement>
           <Avatar className="size-16">
