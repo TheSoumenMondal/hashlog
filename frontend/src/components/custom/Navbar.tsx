@@ -19,6 +19,11 @@ const Navbar = () => {
         hashlog
       </Link>
       <div className="flex gap-2 md:gap-4 h-full items-center">
+        <Link href={"/saved"}>
+          <Button size={"sm"} variant={"link"}>
+            Saved Blogs
+          </Button>
+        </Link>
         <ModeToggle />
         {isAuth ? (
           <Avatar

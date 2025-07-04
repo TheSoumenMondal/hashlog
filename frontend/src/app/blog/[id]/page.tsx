@@ -93,6 +93,7 @@ const Page = () => {
   const [bookmark, setBookmark] = useState(false);
 
   const handleBookMark = async () => {
+    
     const token = Cookies.get("token");
     if (!token) {
       toast.error("Please log in to bookmark");
@@ -460,7 +461,7 @@ const Page = () => {
           className="rounded-xl"
           onClick={handleBookMark}
         >
-          {bookmark ? (
+          { bookmark ? (
             <IconBookmark color="#2563eb" fill="#2563eb" />
           ) : (
             <IconBookmarkPlus />
